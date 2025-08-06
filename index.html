@@ -16,13 +16,13 @@
       font-size: 1.2rem;
       text-align: center;
       border: 2px solid #339af0; /* Bold light blue border */
-      box-shadow: 0 0 3px #74c0fc; /* Optional soft glow */
+      box-shadow: 0 0 3px #74c0fc;
     }
 
     select.form-select {
       text-align: center;
-      background-color: #d0ebff; /* Light blue background */
-      color: #000000; /* Black text */
+      background-color: #d0ebff;
+      color: #000000;
       font-weight: bold;
     }
 
@@ -32,7 +32,7 @@
     }
 
     #selectorWrapper {
-      margin-bottom: 1.5rem;
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
@@ -49,9 +49,6 @@
       (cth: <strong>110103110138</strong>)
     </p>
 
-    <div id="errorMsg" class="alert alert-danger py-2 px-3 small d-none">Sila masukkan nombor IC penuh (12 digit).</div>
-    <div id="notFoundMsg" class="alert alert-warning py-2 px-3 small d-none">Slip keputusan tidak dijumpai.</div>
-
     <!-- Jenis Peperiksaan -->
     <div id="selectorWrapper" class="text-left">
       <label for="examSelect" class="form-label small mb-1">Jenis Peperiksaan:</label>
@@ -61,6 +58,10 @@
         <option value="percubaan">Percubaan SPM / UASA</option>
       </select>
     </div>
+
+    <!-- Moved error message here -->
+    <div id="errorMsg" class="alert alert-danger py-2 px-3 small d-none">Sila masukkan nombor IC penuh (12 digit).</div>
+    <div id="notFoundMsg" class="alert alert-warning py-2 px-3 small d-none">Slip keputusan tidak dijumpai.</div>
 
     <!-- Form -->
     <form id="searchForm" class="d-flex gap-2 mb-3">
