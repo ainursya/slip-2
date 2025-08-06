@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Carian Slip Keputusan Pelajar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-size: 1.05rem;
+    }
+
+    #search {
+      font-weight: bold;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center vh-100">
+
+  <div class="card shadow-lg p-4" style="width: 100%; max-width: 450px;">
+    <div class="text-center mb-3">
+      <img src="logo-sekolah.png" alt="Logo Sekolah" style="max-height: 80px;">
+    </div>
+
+    <h4 class="text-center mb-3">Carian Slip Keputusan Pelajar</h4>
+    <p class="text-muted text-center small">
+      Masukkan nombor IC penuh tanpa (-)<br>
+      (cth: <strong>110103110138</strong>)
+    </p>
+
+    <div id="errorMsg" class="alert alert-danger py-2 px-3 small d-none">Sila masukkan nombor IC penuh (12 digit).</div>
+    <div id="notFoundMsg" class="alert alert-warning py-2 px-3 small d-none">Slip keputusan tidak dijumpai.</div>
+
+    <!-- Jenis Peperiksaan -->
+    <div class="mb-2">
+      <label for="examSelect" class="form-label small mb-1">Jenis Peperiksaan:</label>
+      <select id="examSelect" class="form-select form-select-sm">
+        <option value="tov">PEP TOV</option>
+        <option value="pertengahan">Pertengahan Tahun</option>
+        <option value="percubaan">Percubaan SPM / UASA</option>
+      </select>
+    </div>
+
+    <!-- Form -->
+    <form id="searchForm" class="d-flex gap-2 mb-3">
+      <input type="text" id="search" class="form-control form-control-sm" placeholder="">
+      <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center" id="goBtn">
+        <span id="goText">Go</span>
+        <div id="goSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></div>
+      </button>
+    </form>
+
+    <!-- Message -->
+    <div id="message" class="alert py-2 px-3 small d-none"></div>
+
+    <!-- Open Button -->
+    <button id="openBtn" class="btn btn-success btn-sm w-100 mt-2 d-none">Buka Slip</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    let pdfList = {};
+    let lastBlobUrl = null;
+
+    fetch('pdf-list.json')
+      .then(res => res.json())
+      .then(data => pdfList = data)
+      .catch(err => {
+        console.error("❌ Gagal muat senarai:", err);
+        showMessage("❌ Gagal memuat senarai fail.", "danger");
+        document.getElementById('goBtn').disabled = true;
+      });
+
+    const form = document.getElementById('searchForm');
+    const input = document.getElementById('search');
+    const examSelect = document.getElementById('examSelect');
+    const errorMsg = document.getElementById('errorMsg');
+    const notFoundMsg = document.getElementById('notFoundMsg');
+    const messageDiv = document.getElementById('message');
+    const openBtn = document.getElementById('openBtn');
+    const goButton = document.getElementById('goBtn');
+    const goText = document.getElementById('goText');
+    const goSpinner = document.getElementById('goSpinner');
+
+    input.addEventListener('input', () => {
+      errorMsg.classList.add('d-none');
+      notFoundMsg.classList.add('d-none');
+      clearMessage();
+      openBtn.classList.add('d-none');
+      goSpinner.classList.add('d-none');
+      goText.classList.remove('d-none');
+      goButton.disabled = false;
+    });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      goButton.disabled = true;
+      goText.classList.add('d-none');
+      goSpinner.classList.remove('d-none');
+
+      const query = input.value.trim().replace(/-/g, '');
+      const exam = examSelect.value;
+
+      if (!/^\d{12}$/.test(query)) {
+        errorMsg.classList.remove('d-none');
+        notFoundMsg.classList.add('d-none');
+        clearMessage();
+        openBtn.classList.add('d-none');
+        resetButton();
+        return;
+      } else {
+        errorMsg.classList.add('d-none');
+      }
+
+      if (pdfList[exam] && pdfList[exam].includes(query)) {
+        notFoundMsg.classList.add('d-none');
+        const fileUrl = `results/${exam}/${query}.pdf`;
+
+        try {
+          const res = await fetch(fileUrl);
+          if (!res.ok) throw new Error("Not found");
+
+          const blob = await res.blob();
+          const blobUrl = window.URL.createObjectURL(blob);
+          lastBlobUrl = blobUrl;
+
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `${query}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          showMessage(`✅ Slip untuk <strong>${query}</strong> berjaya dimuat turun.`, "success");
+          openBtn.classList.remove('d-none');
+        } catch (err) {
+          showMessage(`❌ Gagal muat turun slip untuk <strong>${query}</strong>.`, "danger");
+          openBtn.classList.add('d-none');
+        }
+      } else {
+        notFoundMsg.classList.remove('d-none');
+        clearMessage();
+        openBtn.classList.add('d-none');
+      }
+
+      resetButton();
+    });
+
+    openBtn.addEventListener('click', () => {
+      if (lastBlobUrl) window.open(lastBlobUrl, '_blank');
+    });
+
+    function showMessage(msg, type) {
+      messageDiv.innerHTML = msg;
+      messageDiv.className = `alert alert-${type} py-2 px-3 small`;
+      messageDiv.classList.remove('d-none');
+    }
+
+    function clearMessage() {
+      messageDiv.innerHTML = '';
+      messageDiv.classList.add('d-none');
+    }
+
+    function resetButton() {
+      goSpinner.classList.add('d-none');
+      goText.classList.remove('d-none');
+      goButton.disabled = false;
+    }
+  </script>
+</body>
+</html>
