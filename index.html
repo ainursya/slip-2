@@ -16,6 +16,18 @@
       font-size: 1.2rem;
       text-align: center;
     }
+
+    select.form-select {
+      text-align: center;
+      background-color: #e9f5ff;
+      color: #0d6efd;
+      font-weight: bold;
+    }
+
+    .form-label {
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 <body class="bg-light d-flex align-items-center justify-content-center vh-100">
@@ -37,7 +49,7 @@
     <!-- Jenis Peperiksaan -->
     <div class="mb-2">
       <label for="examSelect" class="form-label small mb-1">Jenis Peperiksaan:</label>
-      <select id="examSelect" class="form-select form-select-sm">
+      <select id="examSelect" class="form-select form-select-sm text-center">
         <option value="tov">PEP TOV</option>
         <option value="pertengahan">Pertengahan Tahun</option>
         <option value="percubaan">Percubaan SPM / UASA</option>
